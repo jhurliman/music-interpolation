@@ -11,10 +11,7 @@ This repository is a sandbox to experiment with machine learning techniques for 
 1. `git clone https://github.com/jhurliman/music-interpolation.git`
 2. `cd music-interpolation`
 3. Install pipenv if you have not already: `pip install pipenv`
-4. Install dependencies: `pipenv sync --python 3.10 --categories="packages dev-packages cpu"`
-
-> Note: Replace `cpu` with `gpu` if you have a CUDA-enabled GPU and want to use it
-
+4. Install dependencies: `pipenv sync --python 3.10 --dev`
 5. Run tests: `pipenv run pytest`
 
 ## Usage

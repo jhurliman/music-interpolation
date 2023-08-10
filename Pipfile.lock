@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "8a1e4bcf3d4eaba709f32f06ecce0a9e209be605593a5949bfd318f25f67800c"
+            "sha256": "455bce9926d82278b02f84d86c98e1512b58c1a6d0cbb99e5da958899587dfef"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -14,7 +14,7 @@
                 "verify_ssl": true
             },
             {
-                "name": "pytorch-cpu",
+                "name": "pytorchcpu",
                 "url": "https://download.pytorch.org/whl/cpu",
                 "verify_ssl": true
             }

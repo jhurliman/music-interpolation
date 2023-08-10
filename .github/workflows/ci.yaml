@@ -29,7 +29,7 @@ jobs:
         shell: bash
 
       - name: Install Pipfile packages
-        run: pipenv sync --python 3.10 --categories="packages dev-packages cpu"
+        run: pipenv sync --python 3.10 --dev
         shell: bash
 
       - name: Formatting
