@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "455bce9926d82278b02f84d86c98e1512b58c1a6d0cbb99e5da958899587dfef"
+            "sha256": "2581ce706da394aae9975dde886795f241c10dcf0bec43685d6ad7f357d2da01"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -11,11 +11,6 @@
             {
                 "name": "pypi",
                 "url": "https://pypi.org/simple",
-                "verify_ssl": true
-            },
-            {
-                "name": "pytorchcpu",
-                "url": "https://download.pytorch.org/whl/cpu",
                 "verify_ssl": true
             }
         ]
@@ -1006,11 +1001,11 @@
         },
         "gradio-client": {
             "hashes": [
-                "sha256:3144c347a080ec82a913dd329e2b50241294da0a633be03e409bc58c79cc7f4c",
-                "sha256:efb308d57c0ec8764f68bc136f77731d2dfdb4ac0ed546a9f396782968fe89fc"
+                "sha256:7dd8e0bd5800445ea985c6bc49e4198197d7367fad30e56ac6deef320b8c51b5",
+                "sha256:aed2ddbe7801da2a7020170d60454d01c0816eddccc5586b8794b3cb21df1c0d"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==0.3.0"
+            "version": "==0.4.0"
         },
         "h11": {
             "hashes": [
@@ -2764,7 +2759,7 @@
                 "sha256:ef654427d91600129864644e35deea761fb1fe131710180b952a6f2e2207075e",
                 "sha256:f66aa6b9580a22b04d0af54fcd042f52406a8479e2b6a550e3d9f95963e168c8"
             ],
-            "markers": "python_full_version >= '3.8.0'",
+            "index": "pypi",
             "version": "==2.0.1"
         },
         "torchaudio": {
@@ -2790,6 +2785,7 @@
                 "sha256:de5d94cb8305c00268dfbc576ca7e445f40891e024a9e5e28c63ad9f851e541a",
                 "sha256:ee08ec303050405998e74a0a3649aee4d16408c2eb4bb1f8c7a726318b1ce1b7"
             ],
+            "index": "pypi",
             "version": "==2.0.2"
         },
         "tqdm": {

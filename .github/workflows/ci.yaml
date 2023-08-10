@@ -32,6 +32,11 @@ jobs:
         run: pipenv sync --python 3.10 --dev
         shell: bash
 
+      - name: Reinstall CPU version of PyTorch
+        run: |
+          pipenv run pip uninstall --yes torch torchaudio
+          pipenv run pip install torch~=2.0 torchaudio~=2.0 --index-url https://download.pytorch.org/whl/cpu
+
       - name: Formatting
         run: pipenv run black --diff .
 
