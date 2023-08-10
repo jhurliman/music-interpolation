@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "releases/**"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Install Python, pipenv and Pipfile packages
+        uses: palewire/install-python-pipenv-pipfile@v3
+        with:
+          python-version: 3.10
+      - name: Formatting
+        run: pipenv run black --diff .
+      - name: Sort imports
+        run: pipenv run isort --check --diff .
+      - name: Lint
+        run: pipenv run flake8
+      - name: Type check
+        run: pipenv run mypy --strict --junit-xml=mypy-results.xml music_interpolation/
+      - name: Test
+        run: pipenv run pytest --junit-xml=pytest-results.xml
+      - name: Surface failing tests
+        if: always()
+        uses: pmeier/pytest-results-action@main
+        with:
+          path: pytest-results.xml
