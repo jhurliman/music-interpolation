@@ -3,15 +3,26 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://download.pytorch.org/whl/cpu"
+verify_ssl = true
+name = "pytorch-cpu"
+
 [packages]
 audiocraft = "*"
 librosa = "*"
 music_interpolation = { editable = true, path = "." }
 numpy = "*"
 soundfile = "*"
+transformers = "~=4.0"
+
+[cpu]
+torch = { version = "~=2.0", index = "pytorch-cpu" }
+torchaudio = { version = "~=2.0", index = "pytorch-cpu" }
+
+[gpu]
 torch = "~=2.0"
 torchaudio = "~=2.0"
-transformers = "~=4.0"
 
 [dev-packages]
 argparse = "==1.4.0"
