@@ -51,17 +51,3 @@ jobs:
 
       - name: Test
         run: pipenv run pytest --junit-xml=pytest-results.xml
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        with:
-          name: Test results
-          path: |
-            pytest-results.xml
-            mypy-results.xml
-
-      - name: Surface failing tests
-        if: always()
-        uses: pmeier/pytest-results-action@main
-        with:
-          path: pytest-results.xml
