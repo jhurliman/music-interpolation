@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "releases/**"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pipenv"
+
+      - name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        shell: bash
+
+      - name: Install Pipfile packages
+        run: pipenv sync --python 3.10 --dev
+        shell: bash
+
+      - name: Reinstall CPU version of PyTorch
+        run: |
+          pipenv run pip uninstall --yes torch torchaudio
+          pipenv run pip install torch~=2.0 torchaudio~=2.0 --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Formatting
+        run: pipenv run black --diff .
+
+      - name: Sort imports
+        run: pipenv run isort --check --diff .
+
+      - name: Lint
+        run: pipenv run flake8
+
+      - name: Type check
+        run: pipenv run mypy --strict --junit-xml=mypy-results.xml music_interpolation/
+
+      - name: Test
+        run: pipenv run pytest --junit-xml=pytest-results.xml

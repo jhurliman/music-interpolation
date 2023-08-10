@@ -1,0 +1,27 @@
+// -*- jsonc -*-
+{
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4
+  },
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingTypeStubs": "none",
+    "reportUnknownMemberType": "none"
+  },
+  "python.analysis.typeCheckingMode": "strict",
+
+  "search.exclude": {
+    "**/build": true,
+    "**/*.lock": true
+  }
+}
