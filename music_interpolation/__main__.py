@@ -12,7 +12,7 @@ NDFloat = npt.NDArray[np.float32]
 LoadedAudio = tuple[npt.NDArray[np.float32], float]
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.description = "Generate audio transitions between two songs"
     parser.add_argument("input_a", help="Path to first input audio file")
