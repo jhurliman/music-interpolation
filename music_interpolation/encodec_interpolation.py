@@ -33,7 +33,16 @@ class EncodecInterpolation:
     def sampling_rate(self) -> int:
         return cast(int, self.processor.sampling_rate)
 
-    def interpolate(self, audio_a: NDFloat, audio_b: NDFloat) -> NDFloat:
+    def interpolate(
+        self, audio_a: NDFloat, audio_b: NDFloat, t_coeffs: NDFloat | None = None
+    ) -> NDFloat:
+        """
+        Executes the interpolation between two audio clips. The audio clips must have the same
+        number of channels and duration. If provided, the interpolation coefficient array 't_coeffs'
+        must have the same length as the audio clips. If 't_coeffs' is not provided, a linear
+        interpolation is used.
+        """
+
         # Ensure audio_a and audio_b have the same number of channels and duration
         if len(audio_a.shape) != len(audio_b.shape):
             raise ValueError(
@@ -69,23 +78,26 @@ class EncodecInterpolation:
             inputs_b["input_values"], self.model.encoder, self.model.config, padding_mask
         )
 
-        # Iterate through the frames, interpolating between embedding_a and embedding_b
-        interpolated_embedding_list: list[torch.Tensor] = []
-        interpolated_scales_list: list[torch.Tensor] = []
-        length = min(len(embedding_a), len(embedding_b))
-        for i in range(length):
-            # Calculate the interpolation factor for this frame, ranging from 0 to 1
-            # Right now linear interpolation is hardcoded. We could take an interpolation
-            # tensor as input to allow for different interpolation methods
-            t = i / (length - 1)
+        if t_coeffs is None:
+            t_coeffs = np.linspace(0, 1, num=embedding_a.shape[0])
+        if len(t_coeffs) != embedding_a.shape[0]:
+            raise ValueError(
+                f"'audio_a', 'audio_b', 't_coeffs' must all have the same length, "
+                f"but got audio_a={audio_a.shape}, audio_b={audio_b.shape}, "
+                f"t_coeffs={t_coeffs.shape}"
+            )
 
-            # Perform the interpolation for the embeddings and scales
-            interpolated_embedding_list.append((1 - t) * embedding_a[i] + t * embedding_b[i])
-            interpolated_scales_list.append((1 - t) * scale_a[i] + t * scale_b[i])
+        # Compute the slerp interpolation between embeddings
+        interpolated_embedding = compute_interpolation_in_latent(
+            embedding_a, embedding_b, t_coeffs
+        )
 
-        # Stack the interpolated embedding and scales into tensors
-        interpolated_embedding = torch.stack(interpolated_embedding_list)
-        interpolated_scales = torch.stack(interpolated_scales_list)
+        # Adjust the shape back to (n, 2) for decoding
+        interpolated_embedding = interpolated_embedding.transpose(0, 1)
+
+        # Linearly interpolate the scales
+        t_tensor = torch.tensor(t_coeffs, device=scale_a.device, dtype=scale_a.dtype)
+        interpolated_scales = torch.lerp(scale_a, scale_b, t_tensor).double()
 
         # Decode the interpolated embeddings into audio
         audio_tensor = decode_embeddings(
@@ -96,11 +108,50 @@ class EncodecInterpolation:
             padding_mask,
         )
 
-        # Trim the audio to the same length as the input audio
-        audio_tensor = audio_tensor[:, :, : audio_a.shape[-1]]
+        # Convert audio_tensor from shape (num_seconds, num_channels, sample_rate) to
+        # (num_channels, num_samples)
+        audio_tensor = audio_tensor.transpose(0, 1)
+        audio_tensor = audio_tensor.reshape(audio_tensor.shape[0], -1)
 
-        audio_values = cast(NDFloat, audio_tensor[0].detach().numpy())
+        # Trim the (num_channels, num_samples) audio to the same length as the input audio
+        audio_tensor = audio_tensor[:, : audio_a.shape[-1]]
+
+        audio_values = cast(NDFloat, audio_tensor.detach().numpy())
         return audio_values
+
+
+# Interpolation code adapted from CRASH
+# <https://github.com/simonrouard/CRASH/blob/3fc43781fbee424845b2a928f859723f605e140d/inference.py#L6-L24>
+def compute_interpolation_in_latent(
+    latent1: torch.Tensor, latent2: torch.Tensor, lambd: npt.ArrayLike
+) -> torch.Tensor:
+    """
+    Implementation of Spherical Linear Interpolation (Slerp) for embeddings.
+    latent1, latent2: tensors of shape (num_frames, batch_size, num_codebooks, codebook_dim)
+    lambd: list of floats between 0 and 1 representing the parameter t of the Slerp
+    """
+    device = latent1.device
+    lambd = torch.tensor(lambd, device=device).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+
+    # Ensure the shapes of latent1 and latent2 match
+    assert latent1.shape == latent2.shape
+
+    # Calculate the cosine of the angle between latent1 and latent2
+    norm_latent1 = cast(torch.Tensor, torch.linalg.norm(latent1, dim=-1, keepdim=True))
+    norm_latent2 = cast(torch.Tensor, torch.linalg.norm(latent2, dim=-1, keepdim=True))
+    cos_omega = (latent1 * latent2).sum(dim=-1, keepdim=True) / (norm_latent1 * norm_latent2)
+
+    # Calculate the angle omega
+    omega = torch.arccos(cos_omega)
+
+    # Calculate the slerp coefficients
+    a = torch.sin((1 - lambd) * omega) / torch.sin(omega)
+    b = torch.sin(lambd * omega) / torch.sin(omega)
+
+    # Perform the slerp interpolation
+    interpolated_latent = a * latent1 + b * latent2
+
+    return interpolated_latent
 
 
 def encode_embedding(
@@ -270,7 +321,7 @@ def _decode_frame_embeddings(
     Decodes the embeddings into an output audio waveform, using the provided
     decoder. Optionally, a scale tensor can be provided to scale the output.
     """
-    outputs: torch.Tensor = decoder(embeddings)
+    outputs: torch.Tensor = decoder(embeddings.float())
     if scale is not None:
         outputs = outputs * scale.view(-1, 1, 1)
     return outputs
