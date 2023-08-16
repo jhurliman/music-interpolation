@@ -62,10 +62,13 @@ class EncodecInterpolation:
                 raw_audio=audio_a, sampling_rate=self.sampling_rate, return_tensors="pt"
             ),
         )
-        padding_mask = inputs_a["padding_mask"]
+        input_values_a = inputs_a["input_values"].to(self.model.device)
+        padding_mask = inputs_a["padding_mask"].to(self.model.device)
+
         embedding_a, scale_a = encode_embedding(
-            inputs_a["input_values"], self.model.encoder, self.model.config, padding_mask
+            input_values_a, self.model.encoder, self.model.config, padding_mask
         )
+        scale_a = scale_a.to(self.model.device)
 
         # padding_mask can be reused for audio_b since it has the same shape
         inputs_b = cast(
@@ -74,9 +77,12 @@ class EncodecInterpolation:
                 raw_audio=audio_b, sampling_rate=self.sampling_rate, return_tensors="pt"
             ),
         )
+        input_values_b = inputs_b["input_values"].to(self.model.device)
+
         embedding_b, scale_b = encode_embedding(
-            inputs_b["input_values"], self.model.encoder, self.model.config, padding_mask
+            input_values_b, self.model.encoder, self.model.config, padding_mask
         )
+        scale_b = scale_b.to(self.model.device)
 
         if t_coeffs is None:
             t_coeffs = np.linspace(0, 1, num=embedding_a.shape[0])
@@ -116,7 +122,7 @@ class EncodecInterpolation:
         # Trim the (num_channels, num_samples) audio to the same length as the input audio
         audio_tensor = audio_tensor[:, : audio_a.shape[-1]]
 
-        audio_values = cast(NDFloat, audio_tensor.detach().numpy())
+        audio_values = cast(NDFloat, audio_tensor.cpu().detach().numpy())
         return audio_values
 
 
