@@ -1,22 +1,16 @@
-from typing import cast
-
-import librosa
-import numpy as np
-import numpy.typing as npt
-
+from music_interpolation.audio import load_audio
 from music_interpolation.encodec_interpolation import EncodecInterpolation
 
-AUDIO_A_PATH = "tests/data/house-equanimity-10s.mp3"
-AUDIO_B_PATH = "tests/data/they-know-me-10s.mp3"
-
-NDFloat = npt.NDArray[np.float_]
+AUDIO_A_PATH = "tests/data/house-equanimity.mp3"
+AUDIO_B_PATH = "tests/data/they-know-me.mp3"
 
 
 def test_interpolate():
     interp = EncodecInterpolation(device="cpu")
     assert interp.sampling_rate == 48000
-    audio_a = cast(NDFloat, librosa.load(AUDIO_A_PATH, sr=interp.sampling_rate, mono=False)[0])
-    audio_b = cast(NDFloat, librosa.load(AUDIO_B_PATH, sr=interp.sampling_rate, mono=False)[0])
+
+    audio_a, _ = load_audio(AUDIO_A_PATH, interp.sampling_rate)
+    audio_b, _ = load_audio(AUDIO_B_PATH, interp.sampling_rate)
 
     # Trim to 2 seconds to speed up the test
     audio_a = audio_a[:, :96000]
