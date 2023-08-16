@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 audiocraft = "*"
 librosa = "*"
+madmom = "==0.16.1"
 music_interpolation = { editable = true, path = "." }
 numpy = "*"
 soundfile = "*"
